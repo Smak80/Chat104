@@ -1,22 +1,25 @@
 package ru.smak.chat
 
 import java.net.ServerSocket
+import kotlin.concurrent.thread
 
-class Server(port: Int) {
+class Server(port: Int = 5104) {
     private val serverSocket = ServerSocket(port)
     private var stop: Boolean = false
 
     fun start(){
         stop = false
-        try {
-            while (!stop) {
-                val socket = serverSocket.accept()
+        thread {
+            try {
+                while (!stop) {
+                    val socket = serverSocket.accept()
+                    ConnectedClient(socket)
+                }
+            } catch (e: Throwable) {
+                println("Произошла непредвиденная ошибка: ${e.message}")
+            } finally {
+                serverSocket.close()
             }
-        } catch (e: Throwable){
-            println("Произошла непредвиденная ошибка: ${e.message}")
-        }
-        finally {
-            serverSocket.close()
         }
     }
 
