@@ -12,8 +12,7 @@ class Server(port: Int = 5104) {
         thread {
             try {
                 while (!stop) {
-                    val socket = serverSocket.accept()
-                    ConnectedClient(socket)
+                    ConnectedClient(serverSocket.accept())
                 }
             } catch (e: Throwable) {
                 println("Произошла непредвиденная ошибка: ${e.message}")
