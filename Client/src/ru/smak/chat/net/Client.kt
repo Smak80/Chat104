@@ -1,4 +1,4 @@
-package ru.smak.chat
+package ru.smak.chat.net
 
 import java.io.BufferedReader
 import java.io.InputStreamReader
