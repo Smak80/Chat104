@@ -12,14 +12,15 @@ class Client(host: String = "localhost", port: Int = 5104) {
     private var stop = false
     private val socket = Socket(host, port)
 
+    private val gotServerDataListeners = mutableListOf<(String)->Unit>()
+    fun addGotServerDataListener(l: (String)->Unit) = gotServerDataListeners.add(l)
+    fun removeGotServerDataListener(l: (String)->Unit) = gotServerDataListeners.remove(l)
+
     fun start() {
         doMainRoutine()
-        Thread.sleep(Random.nextLong(2000, 5000))
-        send("Привет, всем!")
-        Thread.sleep(Random.nextLong(2000, 5000))
-        send("Как у вас дела, Все?")
-        Thread.sleep(Random.nextLong(2000, 5000))
-        send("У меня, вот, хорошо!")
+    }
+    fun stop() {
+        stop = true
     }
 
     private fun doMainRoutine(){
@@ -38,7 +39,7 @@ class Client(host: String = "localhost", port: Int = 5104) {
         }
     }
 
-    private fun process(data: String?) = data?.let{ println(it) }
+    private fun process(data: String?) = data?.let{ gotServerDataListeners.forEach { it(data) } }
 
     fun send(data: String) = PrintWriter(socket.getOutputStream()).apply {
         println(data)
