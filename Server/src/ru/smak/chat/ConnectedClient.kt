@@ -1,60 +1,40 @@
 package ru.smak.chat
 
+import ru.smak.chat.net.Communicator
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.Socket
 import kotlin.concurrent.thread
 
-class ConnectedClient(private val socket: Socket) {
+class ConnectedClient(socket: Socket) {
 
     companion object{
         val clients = mutableListOf<ConnectedClient>()
     }
 
-    private var stop = false
-    private val br = BufferedReader(InputStreamReader(socket.getInputStream()))
-    private val pw = PrintWriter(socket.getOutputStream())
+    private val communicator = Communicator(socket)
 
     val isAlive: Boolean
-        get() = !stop && socket.isConnected
+        get() = !communicator.isStopped
 
     init{
         clients.add(this)
-        doMainRoutine()
-    }
-
-    private fun doMainRoutine(){
-        thread {
-            try {
-                while (!stop) {
-                    val data = br.readLine()
-                    process(data)
-                }
-            } catch (_: Throwable){
-                println("Ошибка взаимодействия")
-            } finally {
-                socket.close()
-            }
+        communicator.addOnStopListener {
+            clients.remove(this)
         }
+        communicator.doMainRoutine(::process)
     }
 
-    private fun process(data: String?) = data?.let{ sendToAll(it) }
-
-    fun send(data: String) = pw.apply {
-        println(data)
-        flush()
-    }
+    private fun process(data: String) = sendToAll(data)
 
     private fun sendToAll(data: String) = clients.apply {
         removeIf { !it.isAlive }
         forEach {
-            it.send(data)
+            it.communicator.send(data)
         }
     }
 
-    fun stop(){
-        stop = true
-    }
+    fun stop() = communicator.stop()
 
 }

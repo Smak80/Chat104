@@ -11,6 +11,7 @@ class Client(host: String = "localhost", port: Int = 5104) {
 
     private var stop = false
     private val socket = Socket(host, port)
+    private val communicator = Communicator(Socket(host, port))
 
     private val gotServerDataListeners = mutableListOf<(String)->Unit>()
     fun addGotServerDataListener(l: (String)->Unit) = gotServerDataListeners.add(l)
@@ -41,9 +42,6 @@ class Client(host: String = "localhost", port: Int = 5104) {
 
     private fun process(data: String?) = data?.let{ gotServerDataListeners.forEach { it(data) } }
 
-    fun send(data: String) = PrintWriter(socket.getOutputStream()).apply {
-        println(data)
-        flush()
-    }
+    fun send(data: String) = communicator.send(data)
 
 }
