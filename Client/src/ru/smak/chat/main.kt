@@ -10,7 +10,11 @@ fun main() {
     try {
         val cl = Client()
         cv.addGotUserDataListener(cl::send)
-        cv.addStopListener(cl::stop)
+        cv.addStopListener{
+            cl.stop()
+            cl.removeGotServerDataListener(cv::showMessage)
+            cv.removeGotUserDataListener(cl::send)
+        }
         cl.addGotServerDataListener(cv::showMessage)
         cl.start()
     } catch (_: Throwable){
